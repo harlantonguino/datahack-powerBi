@@ -1,0 +1,64 @@
+﻿DEFINE 
+---- MODEL MEASURES BEGIN ----
+MEASURE MedidasDAX[avgUltimaCompra] = AVERAGE(dim_Cliente[ultimaCompra])
+MEASURE MedidasDAX[ingresoMedioCliente] = AVERAGE(dim_Cliente[ingresos])
+MEASURE MedidasDAX[numeroCampañasAceptadas] = CALCULATE( SUM( 'fct_AceptacionCampaña'[acepta]))
+MEASURE MedidasDAX[rankAceptacion] = RANKX(ALL(dim_Cliente), [numeroCampañasAceptadas])
+MEASURE MedidasDAX[totalAceptacion>1Campaña] = 
+CALCULATE(
+    [totalAceptacionCampañaSI],
+    FILTER(
+        dim_Cliente,
+        CALCULATE( SUM('fct_AceptacionCampaña'[acepta]) , REMOVEFILTERS('dim_Campaña')) > 1
+    )
+)
+MEASURE MedidasDAX[totalAceptacionCampañaNO] = 
+CALCULATE(
+    [totalClientes],
+    FILTER(
+        dim_Cliente, //ó ALL(dim_Cliente[idCliente])
+        CALCULATE( SUM('fct_AceptacionCampaña'[acepta]) ) = 0
+    )
+)
+MEASURE MedidasDAX[totalAceptacionCampañaNOB] = 
+CALCULATE( 
+    [totalClientes],
+    CROSSFILTER(
+        'fct_AceptacionCampaña'[idCliente],
+        dim_Cliente[idCliente],
+        Both
+    ),
+    FILTER(
+        VALUES('fct_AceptacionCampaña'[idCliente]),
+        CALCULATE( SUM('fct_AceptacionCampaña'[acepta]) ) = 0
+    )
+)
+MEASURE MedidasDAX[totalAceptacionCampañaSI] = //distintos clientes
+CALCULATE(
+    [totalClientes],
+    CROSSFILTER(
+        'fct_AceptacionCampaña'[idCliente],
+        dim_Cliente[idCliente],
+        Both
+    ),
+    'fct_AceptacionCampaña'[acepta] = 1)
+MEASURE MedidasDAX[totalAdolecentesHogar] = SUM(dim_Cliente[adolecentesHogar])
+MEASURE MedidasDAX[totalClientes] = COUNTROWS(dim_Cliente)
+MEASURE MedidasDAX[totalClientesCompraProductoSI] = //distintos clientes
+CALCULATE(
+    [totalClientes],
+    CROSSFILTER(
+        'fct_CompraProducto'[idCliente],
+        dim_Cliente[idCliente],
+        Both
+    ),
+    'fct_CompraProducto'[valorCompra] <> 0)
+MEASURE MedidasDAX[totalCompraCanal] = SUM(fct_CompraCanal[cantCompras])
+MEASURE MedidasDAX[totalCompraProducto] = SUM(fct_CompraProducto[valorCompra])
+MEASURE MedidasDAX[totalesCompraCampaña] = SWITCH(SELECTEDVALUE('dim_Campaña'[campaña]), "campaña 1", 1, "campaña 2", 2, "selecciona")
+MEASURE MedidasDAX[totalNiñosHogar] = SUM(dim_Cliente[niñosHogar])
+MEASURE MedidasDAX[totalPromociones] = SUM(dim_Cliente[cantPromociones])
+MEASURE MedidasDAX[totalQuejas] = SUM(dim_Cliente[queja])
+MEASURE MedidasDAX[totalVisitasWeb] = SUM(dim_Cliente[visitasWeb])
+---- MODEL MEASURES END ----
+
